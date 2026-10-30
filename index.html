@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="sv"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>♠ ingolf-All-In-Poker 1.7</title>
+<meta name="apple-mobile-web-app-title" content="♠ ingolf-All-In-Poker 1.4">
+<meta name="application-name" content="♠ ingolf-All-In-Poker 1.4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#0d2a1f;color:#eef3ee;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh;display:flex;justify-content:center}
+#app{width:100%;max-width:480px;padding:10px 10px 24px;display:flex;flex-direction:column;gap:10px}
+h1{font-size:16px;margin:2px 0;opacity:.8;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+h1 small{font-weight:400;opacity:.7}
+.table{background:radial-gradient(ellipse at center,#1d6b47,#124a31);border:3px solid #0a3524;border-radius:24px;padding:12px;display:flex;flex-direction:column;gap:12px}
+.bots{display:flex;gap:8px}
+.seat{flex:1;background:rgba(0,0,0,.28);border:2px solid transparent;border-radius:14px;padding:8px;text-align:center;min-height:98px}
+.seat .nm{display:block;background:#f5d46a;color:#15291e;border-radius:7px;padding:5px 3px;font-size:14px;font-weight:900;min-height:28px;line-height:18px;overflow-wrap:anywhere}.seat.turn{border-color:#ffd54a;box-shadow:0 0 12px #ffd54a88}
+.seat.fold{opacity:.45}.seat.out{opacity:.3}
+.nm{font-weight:800;font-size:15px;color:#fff;overflow-wrap:anywhere}.me .nm{font-size:19px;color:#ffd54a}.st{font-size:13px;opacity:.9}
+.badge{display:inline-block;font-size:10px;font-weight:700;background:#fff;color:#111;border-radius:9px;padding:0 5px;margin-left:3px}
+.act{font-size:12px;color:#ffd54a;min-height:16px}
+.cards{display:flex;gap:4px;justify-content:center;margin:4px 0}
+.card{width:34px;height:48px;border-radius:5px;background:#fff;color:#111;font-weight:700;font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;box-shadow:0 1px 3px #0006}
+.card.r{color:#c4161c}
+.card.back{background:repeating-linear-gradient(45deg,#2b4a9a,#2b4a9a 4px,#1f3778 4px,#1f3778 8px);border:2px solid #fff}
+.card.slot{background:rgba(0,0,0,.2);box-shadow:none;border:1px dashed #fff4}
+.mine .card{width:54px;height:76px;font-size:22px}
+.board{display:flex;gap:5px;justify-content:center}
+.board .card{width:44px;height:62px;font-size:19px}
+.pot{text-align:center;font-size:15px}.pot b{color:#ffd54a;font-size:18px}
+.msg{text-align:center;min-height:38px;font-size:14px;font-weight:600}
+.me{background:rgba(0,0,0,.28);border-radius:14px;padding:8px;text-align:center;border:2px solid transparent}
+.me.turn{border-color:#ffd54a;box-shadow:0 0 12px #ffd54a88}
+.ctl{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;gap:8px}
+button{flex:1;font-size:16px;font-weight:700;border:0;border-radius:12px;padding:13px 6px;color:#fff;background:#3a5a4a}
+button:disabled{opacity:.35}
+.f{background:#a33}.c{background:#2d7d4e}.r2{background:#c58a12}.big{background:#3563c9}
+.q{font-size:13px;padding:8px 4px;background:#2c4a3c}
+input[type=range]{width:100%;accent-color:#ffd54a}
+.log{background:#0a1f17;border-radius:12px;padding:8px 10px;font-size:12.5px;line-height:1.5;opacity:.85;max-height:140px;overflow:auto}
+
+.bots{flex-wrap:wrap}.seat{min-width:30%}.opponents{font-size:13px;font-weight:700;text-align:center;color:#fff;background:#0c3828;border-radius:9px;padding:7px 5px;line-height:1.5}
+.panel{background:#0a1f17;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.panel h2{margin:0;font-size:16px}
+textarea,input[type=text],select{width:100%;border-radius:10px;border:1px solid #3a5a4a;background:#12372a;color:#fff;padding:10px;font-size:14px}
+textarea{height:84px;font-family:monospace;font-size:11px}
+.pl{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #fff2}
+.hint{font-size:12px;opacity:.7;line-height:1.4}
+.hide{display:none!important}
+.chips{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;min-height:22px;margin:2px 0}
+.chip{min-width:26px;height:22px;border-radius:11px;border:2px dashed #fff9;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 1px 2px #0008}
+.chW{background:#f2f2f2;color:#222}.chR{background:#d32f2f;color:#fff}.chB{background:#1f5fd6;color:#fff}.chG{background:#1b9a4a;color:#fff}.chK{background:#1a1a1a;color:#fff}
+
+/* Alla klienter använder samma absoluta platsordning. Index ökar medurs. */
+.poker-ring{position:relative;width:100%;height:410px;border-radius:50% / 44%;border:5px solid #092c1e;background:radial-gradient(ellipse,#237b50,#125135 73%,#0b3927);box-shadow:inset 0 0 20px #0007;overflow:hidden}
+.ring-seats{position:absolute;inset:0}
+.ring-seats .seat{position:absolute;transform:translate(-50%,-50%);width:104px;min-width:0;min-height:0;padding:4px 2px;border-radius:10px;background:#092b22ed;z-index:2}
+.ring-seats .seat .nm{font-size:11px;line-height:14px;min-height:20px;padding:3px 1px}
+.ring-seats .seat .st{font-size:10px}
+.ring-seats .seat .card{width:22px;height:30px;font-size:11px}
+.ring-seats .seat .cards{margin:2px 0}
+.ring-seats .seat .act{font-size:9px;min-height:10px}
+.ring-seats .seat .chips{min-height:0}
+.ring-seats .seat .chip{height:15px;min-width:19px;font-size:9px;padding:0 2px}
+.ring-seats .seat.self{border-color:#76dfff}
+.ring-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:70%;text-align:center;pointer-events:none}
+.ring-center .board .card{width:32px;height:45px;font-size:15px}
+.ring-center .pot{font-size:12px}
+.ring-center .pot b{font-size:15px}
+.ring-center .chips{min-height:0}
+.ring-center .msg{font-size:11px;min-height:0}
+@media(max-width:390px){.poker-ring{height:365px}.ring-seats .seat{width:90px}.ring-center .board .card{width:28px;height:39px;font-size:13px}}
+@media(max-width:390px){#app{padding:8px 7px 28px}.table{padding:8px;gap:9px}.bots{gap:5px}.seat{padding:5px;min-width:29%;min-height:90px}.board .card{width:39px;height:56px}.mine .card{width:50px;height:70px}button{min-height:48px}input,select,textarea{font-size:16px}}
+@supports(padding:env(safe-area-inset-bottom)){#app{padding-bottom:calc(24px + env(safe-area-inset-bottom))}}
+
+/* Kontrastrik mobilvy inspirerad av pokerbordets nya utseende. */
+body{background:#071b14}
+#app{max-width:760px;padding:8px 8px 24px;gap:7px}
+h1{font-size:18px;opacity:1}
+.table{padding:6px;background:transparent;border:0;gap:8px}
+.poker-ring{height:clamp(390px,105vw,600px);border:9px solid #593019;border-radius:48% / 43%;background:radial-gradient(ellipse at center,#087443 0%,#07552f 65%,#05371f 100%);box-shadow:inset 0 0 0 4px #a36b32,inset 0 0 25px #0009,0 5px 18px #0009;overflow:visible}
+.ring-seats .seat{width:clamp(90px,25vw,138px);padding:5px 3px;border-radius:12px;border:2px solid #64756f;background:#061b17f5;box-shadow:0 2px 7px #0008}
+.ring-seats .seat .nm{background:transparent;color:#fff;font-size:clamp(12px,3.5vw,17px);line-height:1.3;min-height:0;padding:1px 0;font-weight:900}
+.ring-seats .seat .st{font-size:clamp(11px,2.9vw,14px);font-weight:800;color:#ffe077;opacity:1}
+.ring-seats .seat .card{width:clamp(29px,8vw,43px);height:clamp(42px,11vw,59px);font-size:clamp(15px,4.4vw,23px)}
+.ring-seats .seat .cards{gap:3px;margin:4px 0}
+.ring-seats .seat .act{font-size:11px;line-height:1.3;min-height:0}
+.ring-seats .seat .chips{display:none}
+.ring-seats .seat.turn{border-color:#ffdc42;box-shadow:0 0 0 2px #ffdc42,0 0 14px #ffdc42aa}
+.ring-seats .seat.self{border-color:#23aaff;box-shadow:0 0 0 2px #23aaff}
+.ring-center{width:76%;background:#052d20bb;border-radius:24px;padding:7px 2px}
+.ring-center .board{gap:3px}
+.ring-center .board .card{width:clamp(30px,9vw,58px);height:clamp(47px,13vw,78px);font-size:clamp(18px,5vw,29px)}
+.ring-center .pot{font-size:15px;font-weight:800}.ring-center .pot b{font-size:22px}
+.ring-center .msg{font-size:12px;line-height:1.3;margin-top:4px}
+.card{border:1px solid #d6d6d6;box-shadow:0 2px 5px #0008;font-weight:900}
+.card.back{background:repeating-linear-gradient(45deg,#1354b4 0 4px,#2f87e5 4px 6px,#1354b4 6px 10px);border:3px solid #f8f8f8}
+.me{background:#061c18;border:3px solid #158ff1;border-radius:14px;padding:7px}
+.me .nm{font-size:18px}.mine .card{width:clamp(64px,19vw,90px);height:clamp(88px,26vw,120px);font-size:clamp(31px,9vw,45px)}
+button{min-height:49px;font-size:17px;box-shadow:0 2px 5px #0005}.f{background:#bf1725}.c{background:#075dc6}.r2{background:#078d4c}
+@media(max-width:390px){.poker-ring{height:390px}.ring-seats .seat{width:91px}.ring-center .board .card{width:29px;height:43px;font-size:17px}}
+/* Tydlig pott och vinnare, utan separat ruta för egna kort. */
+.ring-center .pot{font-size:clamp(19px,5vw,28px);font-weight:900;line-height:1.3;color:#fff}
+.ring-center .pot b{font-size:clamp(28px,8vw,43px);color:#ffe16b}
+.ring-center .msg{font-size:clamp(18px,5vw,27px);font-weight:900;line-height:1.35;color:#ffe16b;text-shadow:0 2px 4px #000;margin-top:7px;overflow-wrap:anywhere}
+.ring-seats .seat.self .card{width:clamp(35px,10vw,54px);height:clamp(51px,14vw,75px);font-size:clamp(19px,5.5vw,29px)}
+.ring-seats .seat.self .nm{color:#80d7ff}
+
+/* Desktop: bordet till vänster, satsning och logg till höger. Mobilen behåller staplad vy. */
+.game-sidebar{display:flex;flex-direction:column;gap:12px;min-width:0}
+@media(min-width:700px){
+ body{min-height:100vh}
+ #app{max-width:1480px;width:100%;padding:10px 18px;gap:8px}
+ #game:not(.hide){display:grid;grid-template-columns:minmax(0,1fr) 310px;align-items:start;gap:18px}
+ #game>.table{min-width:0;padding:0}
+ .poker-ring{height:min(76vh,680px);min-height:440px;width:100%;max-width:980px;margin:0 auto}
+ .game-sidebar{height:min(76vh,680px);min-height:440px}
+ .game-sidebar .ctl{flex:0 0 auto}
+ .game-sidebar .log{flex:1;max-height:none;min-height:0;overflow-y:auto;font-size:13px}
+ .game-sidebar .row{gap:6px}
+ .game-sidebar button{padding:10px 5px;min-height:44px;font-size:15px}
+ .ring-seats .seat{width:clamp(105px,11vw,145px)}
+ .ring-seats .seat .card{width:clamp(32px,3.3vw,46px);height:clamp(46px,4.5vw,63px)}
+ .ring-center .board .card{width:clamp(38px,4vw,59px);height:clamp(53px,5.6vw,80px)}
+}
+
+/* Tydlig högerspalt för dator och surfplatta i liggande läge. */
+@media(min-width:700px){
+  #game:not(.hide){width:100%;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(270px,330px);column-gap:14px}
+  #game>.game-sidebar{grid-column:2;grid-row:1;background:#102c23;border:2px solid #38634c;border-radius:16px;padding:12px;align-self:stretch}
+  #game>.table{grid-column:1;grid-row:1}
+  .game-sidebar .ctl::before{content:"SATSNING";display:block;font-size:13px;font-weight:900;letter-spacing:.12em;color:#f5d46a;margin-bottom:5px}
+  .game-sidebar .log::before{content:"SPELLOGG";display:block;font-size:13px;font-weight:900;letter-spacing:.12em;color:#f5d46a;margin-bottom:8px}
+}
+/* Kompaktare desktopvy och tydliga kort på höger sida. */
+@media(min-width:700px){
+  #game:not(.hide){grid-template-columns:minmax(0,1fr) 330px;gap:12px}
+  .poker-ring{height:min(79vh,700px);min-height:420px}
+  .game-sidebar{height:min(79vh,700px);min-height:420px;position:sticky;top:8px}
+  .game-sidebar .log{font-size:14px;line-height:1.55}
+  .ring-seats .seat.self{width:155px;background:#072e27;z-index:4}
+  .ring-seats .seat.self .card{width:52px;height:73px;font-size:27px}
+  .ring-center .pot b{font-size:42px}
+  .ring-center .msg{font-size:clamp(19px,2vw,29px)}
+}
+@media(max-width:699px){
+  .game-sidebar{margin-top:8px}
+  .ring-seats .seat.self{z-index:4}
+}
+/* Resultat visas under bordet, i full bredd, utan att klippas av ovalen. */
+#game>.table{display:flex;flex-direction:column;min-width:0}
+#game .result-banner{display:block;position:relative;width:100%;max-width:100%;height:auto;min-height:58px;box-sizing:border-box;margin:9px auto 0;padding:12px 16px;border-radius:12px;background:#153b2c;border:2px solid #b48a35;color:#ffe16b;font-size:clamp(18px,2.1vw,28px);font-weight:900;line-height:1.35;text-align:center;white-space:normal;overflow:visible;overflow-wrap:break-word;word-break:normal;text-overflow:clip;text-shadow:0 1px 2px #000}
+@media(max-width:699px){#game .result-banner{font-size:clamp(17px,4.6vw,24px);min-height:52px;padding:10px 9px}}
+/* Vinnande spelare blinkar exakt tre gånger när given avslutas. */
+@keyframes winnerFlash{0%,100%{filter:brightness(1);box-shadow:0 0 0 2px #ffd84e}50%{filter:brightness(1.7);box-shadow:0 0 0 5px #ffd84e,0 0 28px 12px #ffdc51}}
+.ring-seats .seat.winner{border-color:#ffd84e!important;animation:winnerFlash .8s ease-in-out 3;z-index:6!important}
+.flying-chip{position:fixed;z-index:9999;width:28px;height:28px;border-radius:50%;border:3px dashed #ffe995;background:radial-gradient(circle,#f5c54c,#b47a12);box-shadow:0 2px 9px #0009;color:#4b3000;display:grid;place-items:center;font-size:15px;font-weight:900;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.flying-chip{display:none}}
+/* Turmarkeringen blinkar kontinuerligt tills spelaren agerat. */
+/* Mobil: tur och vinnarmeddelande intill de egna korten. */
+.mobile-seat-status{display:none}
+@keyframes turnTwice{0%,100%{box-shadow:0 0 0 2px #ffdc42;filter:brightness(1)}50%{box-shadow:0 0 0 5px #ffdc42,0 0 24px 9px #ffe05b;filter:brightness(1.55)}}
+.ring-seats .seat.turn.turn-flash{animation:turnTwice .85s ease-in-out infinite}
+@media(max-width:699px){
+ #game .result-banner{display:none}
+ .ring-seats .seat.self{overflow:visible}
+ .ring-seats .seat.self .mobile-seat-status{display:block;position:absolute;top:calc(100% + 7px);right:-3px;width:min(210px,58vw);padding:8px 9px;border-radius:10px;background:#143b2c;border:2px solid #e8bb48;color:#ffe77d;font-size:clamp(13px,3.7vw,17px);font-weight:900;line-height:1.35;text-align:center;overflow-wrap:anywhere;box-shadow:0 4px 12px #0009;z-index:10}
+ .ring-seats .seat.self .mobile-seat-status:empty{display:none}
+}
+@media(prefers-reduced-motion:reduce){.ring-seats .seat.turn.turn-flash{animation:none}}
+#soundToggle{position:fixed;right:12px;top:10px;z-index:1000;background:#14643d;border:2px solid #ffe07a;color:white;border-radius:12px;padding:8px 12px;font-size:14px;min-height:40px;box-shadow:0 2px 9px #0009}
+#soundToggle.sound-on{background:#235b41;border-color:#64d8a0}
+@media(max-width:699px){#soundToggle{top:auto;bottom:calc(10px + env(safe-area-inset-bottom,0px));right:10px}}
+/* Mobil: fem och sju spelare. Gemensamma kort hålls fria från sätena. */
+@media(max-width:699px){
+ .poker-ring.crowded-mobile{height:clamp(470px,132vw,580px)}
+ .poker-ring.crowded-mobile .ring-center{top:60%;width:84%;padding:6px 1px;z-index:3}
+ .poker-ring.crowded-mobile .ring-center .board{gap:2px;flex-wrap:nowrap}
+ .poker-ring.crowded-mobile .ring-center .board .card{width:clamp(27px,8vw,38px);height:clamp(40px,11.5vw,53px);font-size:clamp(14px,4vw,19px);flex-shrink:0}
+ .poker-ring.crowded-mobile .ring-seats .seat{width:clamp(78px,23vw,100px)}
+ .poker-ring.crowded-mobile .ring-seats .seat.self{width:clamp(95px,27vw,118px)}
+}
+/* Mer fri yta kring de fem gemensamma korten vid udda spelarantal. */
+.poker-ring.odd-seats .ring-center{top:57%;width:68%}
+@media(max-width:699px){.poker-ring.odd-seats .ring-center{top:56%;width:64%}}
+/* iPhone-korrigering: endast mobil med fem eller sju spelare. */
+@media(max-width:699px){
+ .poker-ring.crowded-mobile{height:clamp(510px,145vw,620px)}
+ .poker-ring.crowded-mobile .ring-center,
+ .poker-ring.crowded-mobile.odd-seats .ring-center{top:52%;width:76%;padding:7px 0;z-index:3}
+ .poker-ring.crowded-mobile .ring-center .board{display:flex;justify-content:center;gap:2px;flex-wrap:nowrap}
+ .poker-ring.crowded-mobile .ring-center .board .card{width:clamp(25px,7.5vw,34px);height:clamp(37px,10.8vw,48px);font-size:clamp(13px,3.8vw,18px);flex-shrink:0}
+ .poker-ring.crowded-mobile .ring-seats .seat{width:clamp(74px,21vw,92px)}
+ .poker-ring.crowded-mobile .ring-seats .seat.self{width:clamp(91px,26vw,113px)}
+}
+
+/* iPhone: flytta endast de fem gemensamma korten åt vänster,
+   utan att flytta potten eller spelarnas platser. */
+@media(max-width:699px){
+ .poker-ring .ring-center .board{position:relative;left:-30px}
+}
+
+/* Liggande iPhone: tydlig mörkgrön matta och större gemensamma kort. */
+@media (orientation:landscape) and (max-height:600px) and (max-width:1000px){
+ .poker-ring .ring-center .board{
+   position:relative!important;
+   left:-85px!important;
+   display:flex!important;
+   justify-content:center!important;
+   align-items:center!important;
+   gap:5px!important;
+   flex-wrap:nowrap!important;
+   width:max-content!important;
+   max-width:none!important;
+   margin-left:auto!important;
+   margin-right:auto!important;
+   padding:12px 14px!important;
+   border-radius:18px!important;
+   background:#06391f!important;
+   box-shadow:inset 0 2px 12px #001c12a8,0 2px 10px #001b1299!important;
+   overflow:visible!important;
+ }
+ .poker-ring .ring-center .board .card{
+   width:clamp(42px,5.6vw,58px)!important;
+   height:clamp(59px,7.8vw,80px)!important;
+   font-size:clamp(20px,3.2vw,29px)!important;
+   flex-shrink:0!important;
+ }
+}
+
+/* 1.39: I liggande telefonläge ska mattan följa kortgruppen,
+   inte ligga kvar som en separat centrerad platta bakom den. */
+@media (orientation:landscape) and (max-height:600px) and (max-width:1000px){
+ .poker-ring .ring-center{
+   background:transparent!important;
+   box-shadow:none!important;
+ }
+ .poker-ring .ring-center .board{
+   left:0!important;
+   transform:translateX(-85px)!important;
+   background:#06391f!important;
+   border-radius:18px!important;
+   padding:12px 14px!important;
+   box-sizing:content-box!important;
+   width:max-content!important;
+   max-width:none!important;
+   margin-left:auto!important;
+   margin-right:auto!important;
+ }
+}
+
+/* 1.41: Större spelkort på telefon, både stående och liggande. */
+@media (max-width:699px){
+ .ring-seats .seat .card{width:clamp(32px,8.8vw,48px);height:clamp(47px,12vw,66px);font-size:clamp(17px,4.8vw,25px)}
+ .ring-seats .seat.self .card{width:clamp(39px,11vw,59px);height:clamp(56px,15.5vw,82px);font-size:clamp(21px,6vw,32px)}
+ .poker-ring .ring-center .board .card{width:clamp(32px,9vw,46px);height:clamp(46px,13vw,65px);font-size:clamp(18px,5vw,25px)}
+ .poker-ring.crowded-mobile .ring-center .board .card{width:clamp(29px,8.2vw,39px);height:clamp(42px,11.8vw,56px);font-size:clamp(16px,4.2vw,21px)}
+}
+@media (orientation:landscape) and (max-height:600px) and (max-width:1000px){
+ .poker-ring .ring-center .board .card{width:clamp(48px,6.3vw,65px)!important;height:clamp(68px,8.7vw,90px)!important;font-size:clamp(23px,3.6vw,33px)!important}
+ .ring-seats .seat .card{width:clamp(34px,4.4vw,49px);height:clamp(49px,6.2vw,68px);font-size:clamp(18px,2.6vw,26px)}
+}
+
+/* 1.41: Förstora enbart uppvända kort på telefonen, inte kortbaksidor. */
+@media (max-width:699px){
+ .ring-seats .seat .card:not(.back):not(.slot){width:clamp(38px,10vw,54px);height:clamp(55px,14vw,75px);font-size:clamp(20px,5.5vw,29px)}
+ .ring-seats .seat.self .card:not(.back):not(.slot){width:clamp(46px,12vw,66px);height:clamp(65px,17vw,92px);font-size:clamp(24px,6.5vw,35px)}
+ .poker-ring .ring-center .board .card:not(.back):not(.slot){width:clamp(36px,9.5vw,50px);height:clamp(52px,14vw,72px);font-size:clamp(21px,5.5vw,29px)}
+ .poker-ring.crowded-mobile .ring-center .board .card:not(.back):not(.slot){width:clamp(32px,8.5vw,43px);height:clamp(46px,12vw,61px);font-size:clamp(18px,4.8vw,25px)}
+}
+@media (orientation:landscape) and (max-height:600px) and (max-width:1000px){
+ .poker-ring .ring-center .board .card:not(.back):not(.slot){width:clamp(54px,7vw,72px)!important;height:clamp(76px,9.6vw,100px)!important;font-size:clamp(27px,4vw,38px)!important}
+ .ring-seats .seat .card:not(.back):not(.slot){width:clamp(40px,5vw,55px);height:clamp(57px,7vw,76px);font-size:clamp(22px,3vw,30px)}
+}
+
+/* 1.42: Större mörkgrön duk direkt bakom gemensamma kort i stående telefonläge. */
+@media (orientation:portrait) and (max-width:699px){
+ .poker-ring .ring-center .board{
+   background:#06391f;
+   border-radius:20px;
+   padding:18px 12px;
+   box-shadow:inset 0 2px 12px #001c12a8,0 3px 12px #001b1299;
+   box-sizing:border-box;
+   width:max-content;
+   max-width:none;
+   margin-left:auto;
+   margin-right:auto;
+   align-items:center;
+   flex-wrap:nowrap;
+ }
+}
+
+/* 1.43: Kompakt liggande telefonvy utan att krympa uppvända kort. */
+@media (orientation:landscape) and (max-height:600px) and (max-width:1000px){
+ #app{max-width:none;width:100%;padding:4px 7px 12px;gap:3px}
+ h1{font-size:15px;margin:0}
+ #game:not(.hide){display:flex!important;flex-direction:column!important;gap:4px!important;width:100%}
+ #game>.table{width:100%;padding:0;gap:4px;grid-column:auto;grid-row:auto}
+ .poker-ring{width:100%;max-width:none;height:clamp(285px,78vh,425px);min-height:0;margin:0 auto;border-width:6px}
+ .ring-seats .seat{width:clamp(78px,11vw,112px);padding:2px 2px;border-radius:9px}
+ .ring-seats .seat.self{width:clamp(100px,15vw,136px)}
+ .ring-seats .seat .nm{font-size:clamp(11px,1.7vw,14px);line-height:1.05}
+ .ring-seats .seat .st{font-size:11px}
+ .ring-seats .seat .cards{margin:2px 0;gap:2px}
+ .ring-seats .seat .card.back{width:clamp(24px,3.3vw,34px);height:clamp(34px,4.6vw,47px)}
+ .ring-seats .seat .card:not(.back):not(.slot){width:clamp(38px,5vw,55px);height:clamp(54px,7vw,76px);font-size:clamp(20px,3vw,30px)}
+ .ring-seats .seat.self .card:not(.back):not(.slot){width:clamp(47px,6.3vw,65px);height:clamp(67px,8.6vw,91px);font-size:clamp(25px,3.5vw,35px)}
+ .ring-center{width:auto;max-width:65%;padding:0!important}
+ .poker-ring .ring-center .board{transform:translateX(-35px)!important;gap:4px!important;padding:8px 10px!important}
+ .poker-ring .ring-center .board .card{width:clamp(43px,6vw,62px)!important;height:clamp(62px,8.4vw,86px)!important;font-size:clamp(22px,3.4vw,33px)!important}
+ .poker-ring .ring-center .board .card:not(.back):not(.slot){width:clamp(49px,6.6vw,69px)!important;height:clamp(69px,9vw,96px)!important;font-size:clamp(25px,3.8vw,37px)!important}
+ .ring-center .pot{font-size:15px}.ring-center .pot b{font-size:25px}
+ .game-sidebar{grid-column:auto!important;grid-row:auto!important;position:static!important;height:auto!important;min-height:0!important;width:100%;margin-top:2px;padding:5px!important;gap:4px}
+ .game-sidebar .ctl{gap:4px}.game-sidebar .row{gap:5px}
+ .game-sidebar button{min-height:36px;padding:7px 5px;font-size:14px}
+ .game-sidebar .log{max-height:55px;min-height:0;flex:none;font-size:11px}
+ .game-sidebar .ctl::before,.game-sidebar .log::before{display:none}
+ .result-banner{min-height:30px!important;padding:5px!important;font-size:14px!important}
+}
+
+
+/* 1.44: Större och tydligare antal marker i telefonvyn. */
+@media (max-width:699px), (orientation:landscape) and (max-height:600px) and (max-width:1000px){
+ .ring-seats .seat .st{font-size:clamp(15px,3.7vw,21px)!important;font-weight:900!important;line-height:1.3;color:#ffe077;opacity:1}
+}
+
+/* Den som senast höjde har en tydlig lila bakgrund vid sina kort. */
+.ring-seats .seat.raiser{background:#512467!important;border-color:#ed8cff!important;box-shadow:0 0 0 2px #b956e8,0 0 18px #ba5bf6aa!important;z-index:5}
+.ring-seats .seat.raiser .cards{background:#74318c;border-radius:8px;padding:4px 2px}
+.ring-seats .seat.raiser .nm{color:#fff0ff}
+.ring-seats .seat.raiser.turn.turn-flash{animation:turnTwice .85s ease-in-out infinite}
+h1 .version{font-size:.72em;font-weight:500;opacity:.8;margin-left:5px;white-space:nowrap}
+.bet-flash{position:absolute;z-index:50;transform:translate(-50%,-100%);pointer-events:none;white-space:nowrap;padding:5px 10px;border:2px solid #ffe17c;border-radius:12px;background:#43220c;color:#fff4b5;font-weight:900;font-size:clamp(18px,4.8vw,27px);text-shadow:0 1px 3px #000;box-shadow:0 3px 18px #0009;animation:betPop 2s ease-out forwards}
+@keyframes betPop{0%{opacity:0;transform:translate(-50%,-80%) scale(.7)}12%,82%{opacity:1;transform:translate(-50%,-110%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-130%) scale(1)}}
+/* Samma satsningsruta för samtliga spelare: nedflyttad ovanpå korten. */
+.ring-seats .seat{overflow:visible}
+.ring-seats .seat .bet-flash{
+ left:50%;top:calc(65% + 38px);z-index:100;
+ box-sizing:border-box;width:max-content;max-width:min(155px,calc(100vw - 24px));
+ font-size:clamp(13px,3.8vw,19px);line-height:1.15;text-align:center;
+ white-space:normal;overflow-wrap:break-word;animation:betPopOnCards 2s ease-out forwards;
+}
+@media(max-width:699px){
+ .ring-seats .seat .bet-flash{font-size:clamp(13px,3.7vw,16px);max-width:112px;padding:5px 6px}
+}
+@keyframes betPopOnCards{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}12%,82%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+/* Markera dealer tydligt under två sekunder före varje giv. */
+.ring-seats .seat.dealer-spotlight{z-index:30!important;border-color:#ffe27a!important;box-shadow:0 0 0 4px #ffdd66,0 0 28px 12px #ffcf5588!important}
+.ring-seats .seat.dealer-spotlight .dealer-badge{display:inline-grid;place-items:center;min-width:42px;height:42px;font-size:27px;font-weight:1000;border-radius:50%;background:#ffe16b;color:#382100;border:3px solid #fff5bb;box-shadow:0 0 16px #ffd34e;vertical-align:middle;animation:dealerPulse 1s ease-in-out infinite alternate}
+@keyframes dealerPulse{from{transform:scale(1)}to{transform:scale(1.16)}}
+/* Flygande dealerknapp mellan platserna, före nästa giv. */
+.dealer-flying{position:fixed;z-index:9999;pointer-events:none;width:43px;height:43px;border-radius:50%;display:grid;place-items:center;background:#ffe16b;color:#382100;border:3px solid #fff5bb;box-shadow:0 0 17px #ffd34e;font-size:27px;font-weight:1000;transform:translate(-50%,-50%)}
+.ring-seats .seat.dealer-moving .dealer-badge{visibility:hidden}
+
+
+/* 1.47: Tätare mobilvy: knappar och bord får plats utan att kortens framsidor krymps. */
+@media (orientation:portrait) and (max-width:699px){
+ #app{padding:4px 6px calc(8px + env(safe-area-inset-bottom,0px));gap:3px}
+ h1{font-size:15px;margin:0;line-height:1.3}
+ #game:not(.hide){display:flex;flex-direction:column;gap:3px}
+ #game>.table{gap:2px;padding:0}
+ .poker-ring{height:clamp(320px,96vw,420px);border-width:6px}
+ .poker-ring.crowded-mobile{height:clamp(385px,112vw,475px)}
+ .ring-seats .seat{padding:2px 1px}
+ .ring-seats .seat .nm{font-size:clamp(11px,3vw,14px);line-height:1.05}
+ .ring-seats .seat .cards{margin:2px 0;gap:2px}
+ .ring-seats .seat .st{font-size:clamp(13px,3.6vw,17px)!important;line-height:1.05}
+ .ring-center .pot{font-size:16px}.ring-center .pot b{font-size:24px}
+ .poker-ring .ring-center .board{padding:10px 8px;gap:2px}
+ .game-sidebar{margin-top:2px;gap:3px;padding:0}
+ .game-sidebar .ctl{gap:3px}
+ .game-sidebar .row{gap:4px}
+ .game-sidebar button{min-height:34px;padding:6px 3px;font-size:clamp(12px,3.6vw,15px);border-radius:8px;box-shadow:none}
+ .game-sidebar button.q{min-height:28px;padding:4px 2px;font-size:12px}
+ .game-sidebar .log{max-height:46px;min-height:0;padding:3px 6px;font-size:10px;line-height:1.3}
+ .game-sidebar .chips{min-height:0;margin:0}
+ .game-sidebar .chip{height:18px;min-width:22px;font-size:10px}
+}
+@media (orientation:landscape) and (max-height:600px) and (max-width:1000px){
+ #app{padding:2px 5px 5px;gap:2px}
+ .poker-ring{height:clamp(250px,67vh,360px)}
+ .game-sidebar{margin-top:0!important;padding:2px!important;gap:2px}
+ .game-sidebar .ctl,.game-sidebar .row{gap:3px}
+ .game-sidebar button{min-height:30px;padding:4px 3px;font-size:13px;border-radius:7px}
+ .game-sidebar button.q{min-height:26px;font-size:11px;padding:3px}
+ .game-sidebar .log{max-height:34px;font-size:10px;padding:2px 4px}
+}
+/* 1.51: Stabil liggande iPhone-vy. Undvik 100dvh/flex-omflöde och
+   Fullscreen API som kan orsaka att Safari/hemskärmsappen laddar om vyn
+   vid rotation. Använd en vanlig rullbar sida med fast bordshöjd. */
+@media (orientation:landscape) and (max-height:600px) and (max-width:1000px){
+ html,body{min-height:100%;height:auto;overflow-x:hidden}
+ body{display:block}
+ #app{width:100%;max-width:none;min-height:0;height:auto;padding:3px 7px 8px;gap:3px}
+ #game:not(.hide){display:flex!important;flex-direction:column!important;gap:3px!important;min-height:0}
+ #game>.table{flex:none;min-height:0;width:100%}
+ .poker-ring{flex:none!important;height:clamp(270px,72vh,390px)!important;min-height:270px!important;max-height:none!important}
+ .game-sidebar{flex:none;min-height:0;max-height:none;overflow:visible}
+ .game-sidebar .log{display:none}
+ #soundToggle{display:none}
+}
+#fullscreenToggle{display:none!important}
+/* 1.49: Dölj enbart dekorativa marker ovanför satsningsknappen på mobil. */
+@media (max-width:699px), (orientation:landscape) and (max-height:600px) and (max-width:1000px){
+ #rch .chips{display:none!important}
+}
+.blind-clock{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;background:#142f24;border:1px solid #b7a04c;border-radius:10px;padding:6px 10px;color:#f9e6a0;font-size:13px}.blind-clock strong{font-variant-numeric:tabular-nums;font-size:23px;color:#fff;letter-spacing:1px}@media(max-width:699px){.blind-clock{gap:7px;padding:4px;font-size:11px}.blind-clock strong{font-size:20px}}
+#blindAnnouncement{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;display:none;background:#101e18;color:#ffdd55;border:4px solid #ffcc33;border-radius:22px;padding:25px 34px;text-align:center;font-size:clamp(25px,7vw,54px);font-weight:900;box-shadow:0 0 0 100vmax #0008,0 8px 35px #000b;pointer-events:none;white-space:nowrap}
+#blindAnnouncement.show{display:block}
+</style></head><body>
+<button id="soundToggle" type="button" aria-label="Aktivera och testa ljud">🔇 Aktivera ljud</button>
+<div id="blindAnnouncement" role="status" aria-live="assertive"></div>
+<div id="app">
+ <h1><span>♠ ingolf-All-In-Poker <span class="version">1.7</span></span><small id="info"></small></h1>
+ <div id="lobby" class="panel"></div>
+ <div id="game" class="hide">
+  <div id="blindClock" class="blind-clock" aria-live="off"><span>⏱ Nästa blindshöjning</span><strong id="blindCountdown">10:00</strong><span id="blindValues">Blinds 2 / 4</span></div>
+  <div class="table">
+   <div class="poker-ring" id="ring">
+    <div class="ring-seats" id="bots"></div>
+    <div class="ring-center"><div class="board" id="board"></div><div class="pot" id="pot"></div></div>
+   </div>
+   <div class="result-banner msg" id="msg" aria-live="polite"></div>
+  </div>
+  <aside class="game-sidebar"><div class="ctl" id="ctl"></div><div class="log" id="log"></div></aside>
+ </div>
+</div>
+<script>
+(()=>{
+const SB=2,BB=4,START=1000,DELAY=1000,NEXT=30000;
+let blindMinutes=10,maxBlindBlack=0; // 0 = ingen maxgräns
+const blindPeriod=()=>Math.max(1,Number(G?.blindMinutes)||10)*60000;
+const blindLevel=()=>G?Math.min(30,Math.floor((Date.now()-G.startedAt)/blindPeriod())):0;
+const blindCap=()=>G?.maxBlindBlack>0?16*G.maxBlindBlack:Infinity;
+const smallBlind=()=>Math.min(SB*2**blindLevel(),blindCap()/2);
+const bigBlind=()=>Math.min(BB*2**blindLevel(),blindCap());
+const $=id=>document.getElementById(id);
+// Ingen automatisk helskärmsväxling vid rotation: behåll samma spelinstans.
+const SU=['♠','♥','♦','♣'],RK={11:'J',12:'Q',13:'K',14:'A'};
+const rk=r=>RK[r]||String(r);
+const HN=['Högt kort','Ett par','Två par','Tretal','Stege','Färg','Kåk','Fyrtal','Straight flush'];
+const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
+let role=null; // 'host' | 'client' | null
+let G=null,timer=null,logs=[],raiseTo=0,V=null;
+let dealerMoveHand=-1;
+let animatedWinKey=null, playedWinSoundKey=null, audioCtx=null;
+let lastDealHand=null,lastBoardCount=0,cardSoundTimers=[];
+let dealRevealHand=null,dealRevealed=0,dealSequence=[];
+let previewHand=null;
+let lastSoundEventId=0, lastBetFlashId=0;
+let activeBetFlash=null; // Behåll åtgärdsrutan även om bordet ritas om direkt efter check.
+// Kort, mjukt prassel/snärt för varje utdelat kort. Skapas utan externa ljudfiler.
+function playCardSound(){
+  try{
+    if(!audioCtx||audioCtx.state!=='running')return;
+    const now=audioCtx.currentTime, duration=.085;
+    const buffer=audioCtx.createBuffer(1,Math.ceil(audioCtx.sampleRate*duration),audioCtx.sampleRate);
+    const data=buffer.getChannelData(0);
+    for(let i=0;i<data.length;i++){
+      const t=i/data.length;
+      data[i]=(Math.random()*2-1)*Math.pow(1-t,2)*(0.65+0.35*Math.sin(i*.21));
+    }
+    const src=audioCtx.createBufferSource(),filter=audioCtx.createBiquadFilter(),gain=audioCtx.createGain();
+    src.buffer=buffer;filter.type='bandpass';filter.frequency.value=1700;filter.Q.value=.7;
+    gain.gain.setValueAtTime(.0001,now);
+    gain.gain.linearRampToValueAtTime(.22,now+.008);
+    gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+    src.connect(filter);filter.connect(gain);gain.connect(audioCtx.destination);
+    src.start(now);src.stop(now+duration);
+  }catch(_){}
+}
+// Kort, dovt bordsslag när någon checkar.
+function playFoldBang(){
+  try{
+    if(!audioCtx||audioCtx.state!=='running')return;
+    const ctx=audioCtx,at=ctx.currentTime,dur=.22;
+    const osc=ctx.createOscillator(),low=ctx.createGain();
+    osc.type='sine';
+    osc.frequency.setValueAtTime(145,at);
+    osc.frequency.exponentialRampToValueAtTime(48,at+.16);
+    low.gain.setValueAtTime(.0001,at);
+    low.gain.linearRampToValueAtTime(.38,at+.008);
+    low.gain.exponentialRampToValueAtTime(.0001,at+dur);
+    osc.connect(low);low.connect(ctx.destination);
+    osc.start(at);osc.stop(at+dur);
+    const buffer=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*.075),ctx.sampleRate);
+    const data=buffer.getChannelData(0);
+    for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/data.length*11);
+    const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),g=ctx.createGain();
+    src.buffer=buffer;filter.type='lowpass';filter.frequency.value=800;
+    g.gain.setValueAtTime(.3,at);g.gain.exponentialRampToValueAtTime(.0001,at+.075);
+    src.connect(filter);filter.connect(g);g.connect(ctx.destination);
+    src.start(at);src.stop(at+.075);
+  }catch(_){}
+}
+// Mjukt, fallande "ooh, no!"-liknande syntetiskt ljud när någon lägger sig.
+function playFoldOohNo(){
+  try{
+    if(!audioCtx||audioCtx.state!=='running')return;
+    const ctx=audioCtx,now=ctx.currentTime;
+    [[0,.23,410,265],[.23,.35,330,150]].forEach(([offset,duration,from,to],i)=>{
+      const at=now+offset,osc=ctx.createOscillator(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
+      osc.type='sawtooth';
+      osc.frequency.setValueAtTime(from,at);
+      osc.frequency.exponentialRampToValueAtTime(to,at+duration);
+      filter.type='lowpass';filter.frequency.setValueAtTime(850,at);
+      filter.frequency.exponentialRampToValueAtTime(430,at+duration);
+      gain.gain.setValueAtTime(.0001,at);
+      gain.gain.linearRampToValueAtTime(i?.09:.12,at+.035);
+      gain.gain.exponentialRampToValueAtTime(.0001,at+duration);
+      osc.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
+      osc.start(at);osc.stop(at+duration);
+    });
+  }catch(_){}
+}
+function soundActions(v){
+  // Spela bara ljud för verkliga spelhandlingar, aldrig från gamla loggrader.
+  const ev=v.soundEvent;
+  if(!ev || ev.id<=lastSoundEventId)return;
+  lastSoundEventId=ev.id;
+  if(ev.type==='fold')playFoldOohNo();
+  else if(ev.type==='check')playFoldBang();
+}
+function soundDealtCards(v){
+  // Starta varken kortanimation eller kortljud medan dealerknappen blinkar.
+  // Den nya given animeras först när beginDeal() avslutar förhandsvisningen.
+  if(v.dealerPreview){
+    // Nollställ den föregående givens animation redan under dealer-visningen.
+    if(previewHand!==v.hand){
+      previewHand=v.hand;
+      cardSoundTimers.forEach(clearTimeout);cardSoundTimers=[];
+      dealRevealHand=v.hand;
+      dealRevealed=0;
+      dealSequence=[];
+      lastBoardCount=0;
+    }
+    return;
+  }
+  if(!v.hand)return;
+  if(lastDealHand!==v.hand){
+    lastDealHand=v.hand;
+    lastBoardCount=0;
+    cardSoundTimers.forEach(clearTimeout);cardSoundTimers=[];
+    // Dela ett kort per spelare i taget, med 500 ms mellan korten.
+    const active=v.players.map((p,i)=>!p.out?i:-1).filter(i=>i>=0);
+    const start=(v.dealer+1)%v.players.length;
+    active.sort((a,b)=>((a-start+v.players.length)%v.players.length)-((b-start+v.players.length)%v.players.length));
+    dealSequence=active.concat(active);
+    dealRevealHand=v.hand;
+    dealRevealed=0;
+    dealSequence.forEach((_,i)=>{
+      cardSoundTimers.push(setTimeout(()=>{
+        if(lastDealHand!==v.hand)return;
+        dealRevealed=i+1;
+        playCardSound();
+        // Uppdatera enbart korten, inte hela spelvyn eller nätverkssynken.
+        document.querySelectorAll('#bots [data-player]').forEach(el=>{
+          const j=Number(el.dataset.player),cards=el.querySelector('.cards');
+          if(!cards||!V||V.hand!==v.hand)return;
+          const p=V.players[j];
+          const visible=dealSequence.slice(0,dealRevealed).filter(x=>x===j).length;
+          cards.innerHTML=p.out?'':p.cards.slice(0,visible).map(cardEl).join('');
+        });
+      },i*500));
+    });
+  }
+  const boardCount=v.board.filter(Boolean).length;
+  if(boardCount>lastBoardCount){
+    for(let i=0;i<boardCount-lastBoardCount;i++)cardSoundTimers.push(setTimeout(playCardSound,i*115));
+  }
+  lastBoardCount=boardCount;
+}
+
+// Ljud av pokermarker som rasslar och klapprar mot varandra (inte myntklirr).
+function unlockAudio(){
+  try{
+    const AudioClass=window.AudioContext||window.webkitAudioContext;
+    if(!AudioClass)return Promise.reject(new Error('Ljud stöds inte'));
+    audioCtx ||= new AudioClass();
+    // Måste anropas direkt under en användargest på iOS Safari.
+    const result=audioCtx.state==='running'?Promise.resolve():audioCtx.resume();
+    return Promise.resolve(result).then(()=>{
+      if(audioCtx.state!=='running')throw new Error('Ljudet är blockerat');
+      const b=$('soundToggle');
+      if(b){b.textContent='🔊 Ljud på · testa';b.classList.add('sound-on')}
+    });
+  }catch(e){return Promise.reject(e)}
+}
+function testChipSound(){
+  const now=audioCtx.currentTime;
+  for(let i=0;i<12;i++){
+    const at=now+i*.035;
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type='triangle';o.frequency.setValueAtTime(420+(i%4)*75,at);
+    o.frequency.exponentialRampToValueAtTime(160,at+.028);
+    g.gain.setValueAtTime(.11,at);g.gain.exponentialRampToValueAtTime(.0001,at+.035);
+    o.connect(g);g.connect(audioCtx.destination);o.start(at);o.stop(at+.04);
+  }
+}
+$('soundToggle').addEventListener('click',()=>{
+  unlockAudio().then(testChipSound).catch(()=>{
+    $('soundToggle').textContent='🔇 Tryck för ljud';
+    alert('Ljudet kunde inte startas. Kontrollera iPhones volym och att sidan inte är tystad.');
+  });
+});
+document.addEventListener('pointerdown',()=>{unlockAudio().catch(()=>{})},{passive:true});
+document.addEventListener('keydown',()=>{unlockAudio().catch(()=>{})});
+function playWinSound(v){
+  if(!v.over||!v.winners?.length)return;
+  const key=`${role}-${v.hand}-${v.winners.join('-')}`;
+  if(playedWinSoundKey===key)return;
+  playedWinSoundKey=key;
+  try{
+    if(!audioCtx||audioCtx.state!=='running')return;
+    const ctx=audioCtx,now=ctx.currentTime;
+    // En skur av torra, dämpade plast-/lerklickar som tätnar och klingar av.
+    // Inga höga sinus-toner: sådana låter som metallmynt.
+    for(let i=0;i<46;i++){
+      const progress=i/46;
+      const at=now+i*.021+Math.random()*.024;
+      const length=.016+Math.random()*.024;
+      const buffer=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*length),ctx.sampleRate);
+      const samples=buffer.getChannelData(0);
+      for(let j=0;j<samples.length;j++){
+        const t=j/samples.length;
+        samples[j]=(Math.random()*2-1)*Math.exp(-t*(8+Math.random()*2));
+      }
+      const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
+      src.buffer=buffer;
+      filter.type='bandpass';
+      filter.frequency.value=550+Math.random()*950;
+      filter.Q.value=.6+Math.random()*.8;
+      const vol=(.13+Math.random()*.11)*(1-progress*.65);
+      gain.gain.setValueAtTime(vol,at);
+      gain.gain.exponentialRampToValueAtTime(.0001,at+length);
+      src.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
+      src.start(at);src.stop(at+length);
+      // Lågfrekvent, kort knack från marker som slår i varandra.
+      if(i%3===0){
+        const osc=ctx.createOscillator(),og=ctx.createGain();
+        osc.type='triangle';
+        osc.frequency.setValueAtTime(240+Math.random()*220,at);
+        osc.frequency.exponentialRampToValueAtTime(140+Math.random()*100,at+.025);
+        og.gain.setValueAtTime(.045*(1-progress*.7),at);
+        og.gain.exponentialRampToValueAtTime(.0001,at+.035);
+        osc.connect(og);og.connect(ctx.destination);
+        osc.start(at);osc.stop(at+.037);
+      }
+    }
+  }catch(_){}
+}
+let friends=[],hostName='Du',botCount=2;
+let cl={pc:null,dc:null,state:'',name:'',room:'',err:''};
+
+/* ---------- utvärdering ---------- */
+function score5(c){
+  // Jämför först handkategori, sedan alla relevanta valörer i fallande ordning.
+  // Fem bas-15-siffror gör att även kickers avgör vid lika handkategori.
+  const rs=c.map(x=>x.r).sort((a,b)=>b-a);
+  const flush=c.every(x=>x.s===c[0].s);
+  const count=new Map();
+  rs.forEach(r=>count.set(r,(count.get(r)||0)+1));
+  const groups=[...count].map(([r,n])=>({r,n})).sort((a,b)=>b.n-a.n||b.r-a.r);
+  const unique=[...count.keys()].sort((a,b)=>b-a);
+  const wheel=unique.join(',')==='14,5,4,3,2';
+  const straight=unique.length===5&&(unique[0]-unique[4]===4||wheel);
+  const highStraight=wheel?5:unique[0];
+  let cat,rank;
+  if(straight&&flush){cat=8;rank=[highStraight]}
+  else if(groups[0].n===4){cat=7;rank=[groups[0].r,groups[1].r]}
+  else if(groups[0].n===3&&groups[1].n===2){cat=6;rank=[groups[0].r,groups[1].r]}
+  else if(flush){cat=5;rank=rs}
+  else if(straight){cat=4;rank=[highStraight]}
+  else if(groups[0].n===3){cat=3;rank=[groups[0].r,...groups.slice(1).map(g=>g.r).sort((a,b)=>b-a)]}
+  else if(groups[0].n===2&&groups[1].n===2){
+    cat=2;
+    const pairs=groups.filter(g=>g.n===2).map(g=>g.r).sort((a,b)=>b-a);
+    rank=[...pairs,groups.find(g=>g.n===1).r];
+  }
+  else if(groups[0].n===2){cat=1;rank=[groups[0].r,...groups.slice(1).map(g=>g.r).sort((a,b)=>b-a)]}
+  else {cat=0;rank=rs}
+  let score=cat;
+  for(let i=0;i<5;i++)score=score*15+(rank[i]||0);
+  return score;
+}
+function best(cards){
+  let b=-1;const n=cards.length;
+  (function go(st,ch){
+    if(ch.length===5){const s=score5(ch);if(s>b)b=s;return}
+    for(let i=st;i<n;i++){ch.push(cards[i]);go(i+1,ch);ch.pop()}
+  })(0,[]);
+  return b;
+}
+const catOf=s=>{for(let i=0;i<5;i++)s=Math.floor(s/15);return s};
+
+/* ---------- motor (bara värden) ---------- */
+const N=()=>G.players.length;
+function nextIdx(i,f){for(let k=1;k<=N();k++){const j=(i+k)%N();if(f(G.players[j]))return j}return -1}
+function post(p,a){a=Math.min(a,p.stack);p.stack-=a;p.bet+=a;p.total+=a;if(p.stack===0)p.allIn=true}
+function log(t){logs.push(t);if(logs.length>40)logs.shift()}
+const pot=()=>G.players.reduce((a,p)=>a+p.total,0);
+const minTo=()=>G.currentBet===0?bigBlind():G.currentBet+G.minRaise;
+function mkPlayer(o){return {stack:START,bet:0,total:0,cards:[],folded:false,allIn:false,acted:false,out:false,last:'',gone:false,...o}}
+function startMatch(){
+  const ps=[mkPlayer({name:hostName||'Du',local:true})];
+  friends.filter(f=>f.ok).forEach(f=>{const p=mkPlayer({name:f.name,fr:f});f.p=p;ps.push(p)});
+  const bn=[['Donner',.5],['Masen',.85],['Gurra',.65],['Tomas',.75],['Kamel',.45],['Sner',.9],['Hallsis',.7]];
+  for(let i=0;i<botCount;i++)ps.push(mkPlayer({name:bn[i][0],bot:true,agg:bn[i][1]}));
+  if(ps.length<2)return;
+  // Slumpa sittordningen en gång vid matchstart; behåll den under hela matchen.
+  for(let i=ps.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [ps[i],ps[j]]=[ps[j],ps[i]];
+  }
+  logs=[];
+  G={startedAt:Date.now(),blindMinutes,maxBlindBlack,players:ps,board:[],deck:[],dealer:Math.floor(Math.random()*ps.length)-1,phase:'idle',toAct:null,currentBet:0,minRaise:BB,over:true,runout:false,reveal:false,hand:0,matchOver:false,msg:'',winners:[],soundEvent:null,soundSeq:0};
+  showGame();startHand();
+}
+function startHand(){
+  clearTimeout(timer);
+  const P=G.players;
+  P.forEach(p=>{p.out=p.stack<=0||p.gone;p.bet=0;p.total=0;p.cards=[];p.folded=p.out;p.allIn=false;p.acted=false;p.last=''});
+  if(P.filter(p=>!p.out).length<2){G.matchOver=true;G.over=true;G.msg='Matchen är slut.';render();return}
+  G.winners=[];G.winPot=0;G.lastRaiser=null;G.hand++;G.over=false;G.reveal=false;G.runout=false;G.board=[];G.phase='preflop';
+  const previousDealer=G.hand>1?G.dealer:-1;
+  G.dealer=nextIdx(G.dealer,p=>!p.out);
+  G.dealerFrom=previousDealer;
+  G.dealerPreview=true;
+  G.dealing=true;
+  G.toAct=null;
+  G.msg=`${P[G.dealer].name} är dealer`;
+  render();
+  // Första given: visa dealerknappen i 10 sekunder. Senare giv: 2 sekunder.
+  const dealerPreviewMs=G.hand===1?10000:2000;
+  timer=setTimeout(()=>{if(!G||G.over||!G.dealerPreview)return;beginDeal()},dealerPreviewMs);
+}
+function beginDeal(){
+  const P=G.players;
+  G.dealerPreview=false;
+  G.msg='';
+  const d=[];for(let s=0;s<4;s++)for(let r=2;r<=14;r++)d.push({r,s});
+  for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}
+  G.deck=d;
+  const alive=P.filter(p=>!p.out).length;
+  let sb,bb;
+  if(alive===2){sb=G.dealer;bb=nextIdx(sb,p=>!p.out)}else{sb=nextIdx(G.dealer,p=>!p.out);bb=nextIdx(sb,p=>!p.out)}
+  G.sb=sb;G.bb=bb;
+  post(P[sb],smallBlind());post(P[bb],bigBlind());
+  G.currentBet=bigBlind();G.minRaise=bigBlind();
+  P.forEach(p=>{if(!p.out)p.cards=[G.deck.pop(),G.deck.pop()]});
+  G.toAct=alive===2?sb:nextIdx(bb,p=>!p.folded&&!p.allIn);
+  G.msg='';
+  G.dealing=true;
+  log(`— Giv ${G.hand} — Blinds ${smallBlind()}/${bigBlind()} — Knapp: ${P[G.dealer].name}. ${P[sb].name} small blind, ${P[bb].name} big blind.`);
+  raiseTo=0;
+  render();
+  // Vänta tills alla hålkort har delats ut innan första spelaren agerar.
+  timer=setTimeout(()=>{if(!G||G.over)return;G.dealing=false;render();step()},Math.max(0,alive*2-1)*500+150);
+}
+function act(i,type,to){
+  if(G.over||G.dealing||G.toAct!==i||!needsAction(G.players[i]))return;
+  const p=G.players[i],call=Math.min(G.currentBet-p.bet,p.stack),betBefore=p.bet;
+  if(type==='fold'){p.folded=true;p.last='Lägger ner';log(`${p.name} lägger ner.`)}
+  else if(type==='call'){
+    post(p,call);p.last=call?(p.allIn?`All-in ${p.bet}`:`Synar ${call}`):'Check';
+    log(call?`${p.name} synar ${call}${p.allIn?' (all-in)':''}.`:`${p.name} checkar.`)}
+  else{
+    const max=p.stack+p.bet;to=Math.max(Math.min(Number(to)||0,max,max),Math.min(minTo(),max));
+    if(to<=G.currentBet){return act(i,'call')}
+    const inc=to-G.currentBet,wasBet=G.currentBet===0;
+    post(p,to-p.bet);
+    if(inc>=G.minRaise){G.minRaise=inc;G.players.forEach((q,j)=>{if(j!==i&&!q.folded&&!q.allIn)q.acted=false})}
+    G.currentBet=to;
+    G.lastRaiser=i;
+    p.last=(p.allIn?'All-in ':wasBet?'Bet ':'Höjer till ')+to;
+    log(`${p.name} ${wasBet?'bettar':'höjer till'} ${to}${p.allIn?' (all-in)':''}.`);
+  }
+  G.soundEvent={id:++G.soundSeq,type:type==='fold'?'fold':type==='call'?(call===0?'check':'call'):'other',player:i,amount:p.bet-betBefore};
+  p.acted=true;
+  G.toAct=nextPending(i);
+  render();step();
+}
+function needsAction(p){
+  return !p.folded&&!p.allIn&&!p.out&&(!p.acted||p.bet!==G.currentBet);
+}
+function nextPending(i){return nextIdx(i,needsAction)}
+function roundDone(){return G.players.every(p=>!needsAction(p))}
+function step(){
+  clearTimeout(timer);
+  if(G.over)return;
+  if(G.players.filter(p=>!p.folded).length===1)return finish();
+  if(G.runout){timer=setTimeout(advance,DELAY);return}
+  if(roundDone()){G.toAct=null;render();timer=setTimeout(advance,500);return}
+  if(G.toAct==null||!needsAction(G.players[G.toAct])){
+    G.toAct=nextPending(G.toAct==null?G.dealer:G.toAct);
+    render();
+  }
+  const i=G.toAct,p=G.players[i];
+  if(p.bot)timer=setTimeout(()=>bot(i),DELAY);
+  else if(p.gone)timer=setTimeout(()=>{if(!G.over&&G.toAct===i)act(i,G.currentBet>p.bet?'fold':'call')},300);
+}
+function advance(){
+  const P=G.players;
+  P.forEach(p=>{p.bet=0;p.acted=false;p.last=''});
+  G.currentBet=0;G.minRaise=bigBlind();G.lastRaiser=null;
+  if(G.phase==='river')return finish();
+  if(G.phase==='preflop'){G.phase='flop';G.board.push(G.deck.pop(),G.deck.pop(),G.deck.pop())}
+  else{G.phase=G.phase==='flop'?'turn':'river';G.board.push(G.deck.pop())}
+  G.runout=P.filter(p=>!p.folded&&!p.allIn).length<=1;
+  G.toAct=nextPending(G.dealer);
+  raiseTo=0;
+  render();step();
+}
+function finish(){
+  clearTimeout(timer);
+  const P=G.players,alive=P.filter(p=>!p.folded),showdown=alive.length>1;
+  if(showdown){while(G.board.length<5)G.board.push(G.deck.pop());G.reveal=true}
+  const sc=p=>best(p.cards.concat(G.board));
+  const lv=[...new Set(alive.map(p=>p.total))].sort((a,b)=>a-b);
+  let prev=0;const won=P.map(()=>0),lines=[];
+  lv.forEach((L,k)=>{
+    const top=k===lv.length-1;
+    const amt=P.reduce((a,p)=>a+Math.max(0,(top?p.total:Math.min(p.total,L))-Math.min(p.total,prev)),0);
+    const el=alive.filter(p=>p.total>=L);
+    let ws=el;
+    if(showdown){const m=Math.max(...el.map(sc));ws=el.filter(p=>sc(p)===m)}
+    const sh=Math.floor(amt/ws.length);let rem=amt-sh*ws.length;
+    ws.forEach(p=>{won[P.indexOf(p)]+=sh+(rem-->0?1:0)});
+    prev=L;
+  });
+  P.forEach((p,i)=>{p.stack+=won[i]});
+  G.winners=won.map((amount,i)=>amount>0?i:-1).filter(i=>i>=0);
+  G.winPot=won.reduce((a,b)=>a+b,0);
+  P.forEach((p,i)=>{if(won[i]>0){
+    const how=showdown?` med ${HN[catOf(sc(p))].toLowerCase()}`:'';
+    lines.push(`${p.name} vinner${how} (${won[i]} marker)`);log(`🏆 ${p.name} vinner${how} (${won[i]} marker).`)}});
+  G.msg=lines.join(' · ');
+  G.over=true;G.phase='ended';G.toAct=null;
+  P.forEach(p=>{p.total=0});
+  const left=P.filter(p=>p.stack>0);
+  if(left.length<2){G.matchOver=true;G.msg+=` — ${left[0]?left[0].name:'Ingen'} vinner matchen! 🏆`}
+  else{timer=setTimeout(()=>{if(G.over&&!G.matchOver)startHand()},NEXT)}
+  render();
+}
+/* ---------- bottar ---------- */
+function pre(c){
+  const [a,b]=c.map(x=>x.r).sort((x,y)=>y-x);
+  let s=a===b?.5+a/28:(a+b-4)/24;
+  if(c[0].s===c[1].s)s+=.05;if(a!==b&&a-b<=2)s+=.03;
+  return Math.max(0,Math.min(1,s));
+}
+function postS(p){
+  const all=p.cards.concat(G.board),s=best(all),cat=catOf(s);
+  if(cat===0)return .12+Math.max(...p.cards.map(c=>c.r))/100;
+  if(cat===1){
+    const cnt={};all.forEach(c=>cnt[c.r]=(cnt[c.r]||0)+1);
+    const pr=+Object.keys(cnt).find(r=>cnt[r]===2);
+    if(!p.cards.some(c=>c.r===pr))return .22;
+    const top=Math.max(...G.board.map(c=>c.r));
+    return pr>=top?.58+pr/100:.4;
+  }
+  return [0,0,.76,.82,.88,.91,.96,.99,1][cat];
+}
+function bot(i){
+  if(G.over||G.toAct!==i)return;
+  const p=G.players[i],toCall=G.currentBet-p.bet,pt=pot();
+  const s=(G.phase==='preflop'?pre(p.cards):postS(p))+(Math.random()-.5)*.16;
+  const sized=f=>Math.round(G.currentBet+Math.max(bigBlind(),(pt+toCall)*f));
+  if(toCall<=0){
+    if(s>.62||(Math.random()<.12*p.agg&&s>.25))return act(i,'raise',sized(.45+Math.random()*.4));
+    return act(i,'call');
+  }
+  const odds=toCall/(pt+toCall);
+  if(s>.82&&Math.random()<.5+p.agg*.4)return act(i,'raise',sized(.7+Math.random()*.5));
+  if(s>odds+.12||(G.phase==='preflop'&&toCall<=bigBlind()&&s>.33)||(toCall>=p.stack&&s>.7))return act(i,'call');
+  if(Math.random()<.04*p.agg)return act(i,'call');
+  act(i,'fold');
+}
+
+/* ---------- vy per spelare ---------- */
+function view(i){
+  const P=G.players,me=P[i],max=me.stack+me.bet;
+  return {startedAt:G.startedAt,blindMinutes:G.blindMinutes,maxBlindBlack:G.maxBlindBlack,hand:G.hand,board:G.board,pot:G.over&&G.winPot?G.winPot:pot(),msg:G.msg,winners:G.winners||[],over:G.over,dealing:!!G.dealing,dealerPreview:!!G.dealerPreview,dealerFrom:G.dealerFrom,matchOver:G.matchOver,toAct:G.toAct,lastRaiser:G.lastRaiser,soundEvent:G.soundEvent,you:i,
+    dealer:G.dealer,sb:G.sb,bb:G.bb,currentBet:G.currentBet,toCall:Math.min(G.currentBet-me.bet,me.stack),
+    minTo:Math.min(minTo(),max,max),maxTo:Math.min(max,max),canRaise:max>G.currentBet,
+    who:G.toAct!=null&&P[G.toAct]?P[G.toAct].name:'',logs:logs.slice(-12),
+    players:P.map((p,j)=>({name:p.name,stack:p.stack,bet:p.bet,folded:p.folded,out:p.out,last:p.last,
+      cards:p.cards.length?((j===i||(G.reveal&&!p.folded))?p.cards:[null,null]):[]}))};
+}
+function sync(){
+  if(role!=='host')return;
+  friends.forEach(f=>{
+    if(!f.ok||!f.dc||f.dc.readyState!=='open')return;
+    try{
+      if(G&&f.p&&G.players.includes(f.p))f.dc.send(JSON.stringify({t:'view',v:view(G.players.indexOf(f.p))}));
+      else f.dc.send(JSON.stringify({t:'lobby',names:lobbyNames()}));
+    }catch(e){}
+  });
+}
+const lobbyNames=()=>[hostName||'Du'].concat(friends.filter(f=>f.ok).map(f=>f.name));
+
+/* ---------- gränssnitt: spelet ---------- */
+function cardEl(c){
+  if(!c)return '<div class="card back"></div>';
+  return `<div class="card ${c.s===1||c.s===2?'r':''}"><span>${rk(c.r)}</span><span>${SU[c.s]}</span></div>`;
+}
+const DEN=[[16,'K'],[8,'G'],[4,'B'],[2,'W'],[1,'R']];
+function chips(n){n=Math.round(n)||0;if(n<=0)return '<div class="chips"></div>';let h='';for(const [d,c] of DEN){const k=Math.floor(n/d);n-=k*d;if(k)h+=`<span class="chip ch${c}" title="${d}">${k>1?k+'×':''}${d}</span>`}return '<div class="chips">'+h+'</div>'}
+const esc=t=>String(t).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+function badges(i,v){return (v.hand?(i===v.dealer?'<span class="badge dealer-badge">D</span>':'')+(i===v.sb&&!v.players[i].out?'<span class="badge">SB</span>':'')+(i===v.bb&&!v.players[i].out?'<span class="badge">BB</span>':''):'')}
+function seat(i,v){
+  const p=v.players[i];
+  return `<div data-player="${i}" class="seat ${v.dealerPreview&&i===v.dealer?'dealer-spotlight':''} ${v.dealerPreview&&v.dealerFrom>=0&&i===v.dealer?'dealer-moving':''} ${v.over&&v.winners?.includes(i)?'winner':''} ${v.toAct===i&&!v.over&&!v.dealing?'turn turn-flash':''} ${v.lastRaiser===i&&!v.over&&!p.folded?'raiser':''} ${p.folded&&!p.out?'fold':''} ${p.out?'out':''}">
+   <div class="nm">${esc(p.name)}${badges(i,v)}</div><div class="st">${p.out?'Ute':p.stack+' '+(window.matchMedia('(max-width:699px), (orientation:landscape) and (max-height:600px) and (max-width:1000px)').matches?'m':'marker')}</div>
+   <div class="cards">${p.out?'':p.cards.slice(0,v.dealerPreview?0:(dealRevealHand===v.hand?dealSequence.slice(0,dealRevealed).filter(x=>x===i).length:p.cards.length)).map(cardEl).join('')}</div>
+   ${v.over?'':chips(p.bet)}<div class="act">${v.over?'':(p.bet?'Insats '+p.bet:'')+(p.bet&&p.last?' · ':'')+p.last}</div>
+   ${i===v.you?`<div class="mobile-seat-status" aria-live="polite">${esc(v.msg||(v.toAct===v.you&&!v.over&&!v.dealing?'Din tur':(!v.over&&!v.dealing&&v.who?v.who+'s tur':'')))}</div>`:''}</div>`;
+}
+let lastBlindGame=null,lastBlindLevel=null,blindAnnouncementUntil=0;
+function updateBlindClock(){
+  const start=(role==='host'?G?.startedAt:V?.startedAt);
+  if(!start||!$('blindCountdown'))return;
+  const period=Math.max(1,Number(role==='host'?G?.blindMinutes:V?.blindMinutes)||10)*60000;
+  const capBlack=Number(role==='host'?G?.maxBlindBlack:V?.maxBlindBlack)||0;
+  const cap=capBlack>0?16*capBlack:Infinity;
+  const elapsed=Math.max(0,Date.now()-start),remaining=period-(elapsed%period);
+  const seconds=Math.ceil(remaining/1000),level=Math.min(30,Math.floor(elapsed/period));
+  const atMax=4*2**level>=cap;
+  $('blindCountdown').textContent=atMax?'MAX':String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
+  $('blindValues').textContent='Blinds '+Math.min(2*2**level,cap/2)+' / '+Math.min(4*2**level,cap);
+  const gameKey=String(start);
+  const notice=$('blindAnnouncement');
+  if(lastBlindGame!==gameKey){lastBlindGame=gameKey;lastBlindLevel=level;blindAnnouncementUntil=0;}
+  else if(level>lastBlindLevel){
+    lastBlindLevel=level;
+    if(4*2**(level-1)<cap){
+      blindAnnouncementUntil=Date.now()+2000;
+      notice.textContent='NU ÄR BLIND '+Math.min(4*2**level,cap)+'!';
+    }
+  }
+  if(notice)notice.classList.toggle('show',Date.now()<blindAnnouncementUntil);
+}
+setInterval(updateBlindClock,250);
+function render(){
+  updateBlindClock();
+  if(role==='host'){const ownIndex=G.players.findIndex(p=>p.local===true);V=view(ownIndex);sync()}
+  const v=V;if(!v)return;
+  const me=v.players[v.you],isHost=role==='host';
+  soundDealtCards(v);
+  $('info').textContent=`${me.name} · Giv ${v.hand}`;
+  // Den egna platsen ligger till höger på varje skärm. Övriga följer samma medurs spelordning.
+  const count=v.players.length;
+  document.querySelector('.poker-ring').classList.toggle('odd-seats',count%2===1);
+  document.querySelector('.poker-ring').classList.toggle('crowded-mobile',count===5||count===7);
+  $('bots').innerHTML=v.players.map((_,i)=>{
+    const a=((i-v.you)*360/count)*Math.PI/180;
+    let x=50+42*Math.cos(a);
+    let y=50+42*Math.sin(a);
+    // Vid udda antal spelare hamnar en motståndare ibland över gemensamma kort.
+    // Flytta de övre vänstra platserna utåt, utan att ändra spelordningen.
+    if(count%2===1 && x<50 && y<50 && window.innerWidth>=700) y=Math.max(8,y-19);
+    // Mobil: placera sätena längre upp/ned längs kanten så mitten förblir fri.
+    if(window.innerWidth<700 && (count===5 || count===7)) {
+      y=50+45*Math.sin(a);
+      // Håll isär vänsterplatserna: övre vänstra spelaren flyttas upp,
+      // nedre vänstra spelaren ligger kvar längre ned.
+      if(x<35 && y<50) y=Math.max(12,y-12);
+      else if(x<35 && y>=50 && y<85) y=Math.min(85,y+8);
+    }
+    // Samma separation av vänsterplatserna vid andra spelarantal.
+    if(window.innerWidth<700 && count!==5 && count!==7 && x<35) {
+      if(y<50) y=Math.max(12,y-12);
+      else if(y<85) y=Math.min(85,y+8);
+    }
+    // iPhone: separera även platserna till höger från den egna platsen
+    // (som alltid är längst till höger, mitt på bordet).
+    if(window.innerWidth<700 && i!==v.you && x>60) {
+      if(y<50) y=Math.min(y,14);
+      else y=Math.max(y,86);
+    }
+    // Håll hela spelarrutan inom bordet, även på smala iPhone-skärmar.
+    const ringWidth=$('ring').clientWidth || window.innerWidth;
+    const mobile=window.innerWidth<700;
+    const seatWidth=mobile?(count===5||count===7?Math.max(74,Math.min(92,window.innerWidth*.21)):Math.max(90,Math.min(138,window.innerWidth*.25))):Math.max(105,Math.min(145,window.innerWidth*.11));
+    const ownWidth=mobile?(count===5||count===7?Math.max(91,Math.min(113,window.innerWidth*.26)):seatWidth):155;
+    const half=(i===v.you?ownWidth:seatWidth)/2+5;
+    const margin=Math.min(49,100*half/ringWidth);
+    x=Math.max(margin,Math.min(100-margin,x));
+    return `<div style="position:absolute;left:${x}%;top:${y}%;width:0;height:0">${seat(i,v).replace('class="seat ',`class="seat ${i===v.you?'self ':''}`)}</div>`;
+  }).join('');
+  animateDealerMove(v);
+  showBetFlash(v);
+  $('board').innerHTML=[0,1,2,3,4].map(i=>v.board[i]?cardEl(v.board[i]):'<div class="card slot"></div>').join('');
+  $('pot').innerHTML=`Pott <b>${v.pot}</b>`+chips(v.pot);
+  const myTurn=v.toAct===v.you&&!v.over&&!v.dealing&&!me.folded;
+  $('msg').textContent=v.msg||(myTurn?'Din tur':(v.over?'':`${v.who} tänker…`));
+  const c=$('ctl');
+  if(v.over){
+    c.innerHTML=isHost?`<div class="row"><button class="big" id="deal">${v.matchOver?'Tillbaka till lobbyn':'Dela ut nästa giv nu'}</button></div>`:
+      `<div class="row"><button disabled>${v.matchOver?'Matchen är slut – värden startar ny':'Nästa giv delas ut snart…'}</button></div>`;
+    if(isHost)$('deal').onclick=()=>{if(G.matchOver){G=null;showLobby()}else startHand()};
+  }else if(myTurn){
+    const mn=v.minTo,max=v.maxTo;
+    if(raiseTo<mn||raiseTo>max)raiseTo=mn;
+    c.innerHTML=`<div class="row"><button class="f" id="fold">Lägg ner</button><button class="c" id="call">${v.toCall?'Syna '+v.toCall:'Check'}</button></div>`+
+    (v.canRaise?`<input type="range" id="sl" min="${mn}" max="${max}" step="1" value="${raiseTo}">
+     <div class="row"><button class="q" id="q1">½ pott</button><button class="q" id="q2">Pott</button><button class="q" id="q3">Max</button></div>
+     <div id="rch">${chips(raiseTo-me.bet)}</div><div class="row"><button class="r2" id="rs">${v.currentBet?'Höj till ':'Bet '}<span id="rv">${raiseTo}</span></button></div>`:'');
+    $('fold').onclick=()=>doAct('fold');
+    $('call').onclick=()=>doAct('call');
+    if(v.canRaise){
+      const set=x=>{raiseTo=x>=max?max:Math.max(mn,Math.min(max,Math.round(x)));$('sl').value=raiseTo;$('rv').textContent=raiseTo;$('rch').innerHTML=chips(raiseTo-me.bet)};
+      $('sl').oninput=e=>{raiseTo=+e.target.value;$('rv').textContent=raiseTo;$('rch').innerHTML=chips(raiseTo-me.bet)};
+      $('q1').onclick=()=>set(v.currentBet+(v.pot+v.toCall)*.5);
+      $('q2').onclick=()=>set(v.currentBet+(v.pot+v.toCall));
+      $('q3').onclick=()=>set(max);
+      $('rs').onclick=()=>doAct('raise',raiseTo);
+    }
+  }else c.innerHTML='<div class="row"><button disabled>'+ (v.dealing?'Delar ut kort…':'Väntar…') +'</button></div>';
+  $('log').innerHTML=v.logs.slice().reverse().map(t=>`<div>${esc(t)}</div>`).join('');
+  soundActions(v);
+  playWinSound(v);
+  animateWinningChips(v);
+}
+function animateDealerMove(v){
+  if(!v.dealerPreview||v.dealerFrom==null||v.dealerFrom<0||v.dealerFrom===v.dealer)return;
+  if(dealerMoveHand===v.hand)return;
+  dealerMoveHand=v.hand;
+  const from=$('bots').querySelector(`[data-player="${v.dealerFrom}"]`);
+  const to=$('bots').querySelector(`[data-player="${v.dealer}"]`);
+  if(!from||!to)return;
+  const a=from.getBoundingClientRect(),b=to.getBoundingClientRect();
+  const ax=a.left+a.width/2,ay=a.top+24,bx=b.left+b.width/2,by=b.top+24;
+  const chip=document.createElement('div');chip.className='dealer-flying';chip.textContent='D';
+  chip.style.left=ax+'px';chip.style.top=ay+'px';document.body.appendChild(chip);
+  const motion=chip.animate([
+    {transform:'translate(-50%,-50%) scale(1)',opacity:1,offset:0},
+    {transform:`translate(calc(-50% + ${(bx-ax)/2}px), calc(-50% + ${(by-ay)/2-36}px)) scale(1.45)`,opacity:1,offset:.5},
+    {transform:`translate(calc(-50% + ${bx-ax}px), calc(-50% + ${by-ay}px)) scale(1)`,opacity:1,offset:1}
+  ],{duration:1050,easing:'ease-in-out',fill:'forwards'});
+  motion.onfinish=()=>{
+    chip.remove();
+    const target=$('bots').querySelector(`[data-player="${v.dealer}"]`);
+    if(target&&V&&V.hand===v.hand)target.classList.remove('dealer-moving');
+  };
+}
+function showBetFlash(v){
+  const ev=v.soundEvent;
+  if(ev&&ev.player!=null&&ev.id>lastBetFlashId){
+    lastBetFlashId=ev.id;
+    activeBetFlash={id:ev.id,player:ev.player,
+      text:ev.type==='fold'?'Lägger sig':ev.type==='check'?'Checkar':ev.type==='call'?`Synar ${ev.amount} marker`:`Satsar ${ev.amount} marker`,
+      expires:Date.now()+2000};
+  }
+  // render() bygger om alla spelarrutor, t.ex. direkt när en check avslutar
+  // satsningsrundan. Återskapa då meddelandet under den återstående tiden.
+  if(!activeBetFlash)return;
+  const remaining=activeBetFlash.expires-Date.now();
+  if(remaining<=0){activeBetFlash=null;return}
+  const seatEl=$('bots').querySelector(`[data-player="${activeBetFlash.player}"]`);
+  if(!seatEl)return;
+  const tag=document.createElement('div');
+  tag.className='bet-flash';
+  tag.textContent=activeBetFlash.text;
+  tag.style.animation='none';
+  tag.style.opacity='1';
+  tag.style.transform='translate(-50%,-50%)';
+  seatEl.appendChild(tag);
+  const flashId=activeBetFlash.id;
+  setTimeout(()=>{
+    tag.remove();
+    if(activeBetFlash?.id===flashId&&Date.now()>=activeBetFlash.expires)activeBetFlash=null;
+  },remaining);
+}
+
+function animateWinningChips(v){
+  if(!v.over||!v.winners?.length||!v.pot)return;
+  const key=`${role}-${v.hand}-${v.winners.join('-')}`;
+  if(animatedWinKey===key)return;
+  animatedWinKey=key;
+  requestAnimationFrame(()=>{
+    const source=$('pot');
+    if(!source)return;
+    const a=source.getBoundingClientRect();
+    const sx=a.left+a.width/2,sy=a.top+a.height/2;
+    v.winners.forEach((winner,wi)=>{
+      const seat=$('bots').querySelector(`[data-player="${winner}"]`);
+      if(!seat)return;
+      const b=seat.getBoundingClientRect();
+      const tx=b.left+b.width/2,ty=b.top+b.height/2;
+      for(let j=0;j<7;j++){
+        const chip=document.createElement('span');
+        chip.className='flying-chip';
+        chip.textContent=['♠','★','♣','♦'][j%4];
+        chip.style.left=`${sx-14}px`;
+        chip.style.top=`${sy-14}px`;
+        document.body.appendChild(chip);
+        const dx=tx-sx+(j-3)*5,dy=ty-sy+(j%3-1)*7;
+        const animation=chip.animate([
+          {transform:'translate(0,0) scale(.65)',opacity:0},
+          {transform:'translate(0,0) scale(1)',opacity:1,offset:.12},
+          {transform:`translate(${dx}px,${dy}px) scale(.7)`,opacity:1,offset:.85},
+          {transform:`translate(${dx}px,${dy}px) scale(.3)`,opacity:0}
+        ],{duration:1150,delay:wi*160+j*115,easing:'ease-in-out',fill:'forwards'});
+        animation.onfinish=()=>chip.remove();
+      }
+    });
+  });
+}
+function doAct(type,to){
+  raiseTo=0;
+  if(role==='host'){const ownIndex=G.players.findIndex(p=>p.local===true);if(!G.over&&G.toAct===ownIndex)act(ownIndex,type,to)}
+  else if(cl.dc&&cl.dc.readyState==='open')cl.dc.send(JSON.stringify({t:'act',type,to}));
+}
+function showGame(){$('lobby').classList.add('hide');$('game').classList.remove('hide')}
+function showLobby(){$('game').classList.add('hide');$('lobby').classList.remove('hide');$('info').textContent='';lobby();sync()}
+
+/* ---------- anslutning via rumskod (ntfy.sh som budbärare, sedan WebRTC) ---------- */
+function waitIce(pc){return new Promise(r=>{
+  if(pc.iceGatheringState==='complete')return r();
+  const f=()=>{if(pc.iceGatheringState==='complete'){pc.removeEventListener('icegatheringstatechange',f);r()}};
+  pc.addEventListener('icegatheringstatechange',f);setTimeout(r,4000);
+})}
+const T=s=>'https://ntfy.sh/pbord-v1-'+s;
+const pubMsg=(topic,obj)=>fetch(T(topic),{method:'POST',body:JSON.stringify(obj)});
+function subMsg(topic,cb,onopen){
+  const e=new EventSource(T(topic)+'/sse');
+  e.onopen=()=>onopen&&onopen();
+  e.onmessage=ev=>{try{const d=JSON.parse(ev.data);if(d.event==='message')cb(JSON.parse(d.message))}catch(_){}};
+  return e;
+}
+const mkId=n=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:n},()=>a[Math.floor(Math.random()*a.length)]).join('')};
+let room='',es=null;
+function hostOpen(){
+  if(es)return;room=mkId(5);
+  es=subMsg('r-'+room,hostIn);
+}
+function hostIn(m){
+  if(m.t==='join')handleJoin(m);
+  else if(m.t==='answer'){const f=friends.find(x=>x.cid===m.cid);if(f&&f.pc.signalingState==='have-local-offer')f.pc.setRemoteDescription(m.sdp).catch(()=>{})}
+}
+async function handleJoin(m){
+  if(!m.cid||friends.some(x=>x.cid===m.cid))return;
+  if(G){pubMsg('c-'+m.cid,{t:'busy',why:'Spelet har redan startat.'});return}
+  if(friends.length>=5){pubMsg('c-'+m.cid,{t:'busy',why:'Bordet är fullt.'});return}
+  const pc=new RTCPeerConnection(ICE),dc=pc.createDataChannel('poker');
+  const f={pc,dc,ok:false,name:String(m.name||'Spelare').slice(0,14),cid:m.cid,p:null};
+  friends.push(f);lobby();
+  dc.onmessage=e=>hostMsg(f,e.data);
+  dc.onclose=()=>gone(f);
+  pc.onconnectionstatechange=()=>{if(['failed','closed'].includes(pc.connectionState))gone(f)};
+  setTimeout(()=>{if(!f.ok)gone(f,true)},30000);
+  await pc.setLocalDescription(await pc.createOffer());
+  await waitIce(pc);
+  pubMsg('c-'+m.cid,{t:'offer',sdp:{type:pc.localDescription.type,sdp:pc.localDescription.sdp}});
+}
+function hostMsg(f,data){
+  let m;try{m=JSON.parse(data)}catch(e){return}
+  if(m.t==='hello'){f.ok=true;lobby();sync()}
+  else if(m.t==='act'&&G&&f.p){
+    const i=G.players.indexOf(f.p);
+    if(i>=0&&!G.over&&G.toAct===i&&['fold','call','raise'].includes(m.type))act(i,m.type,m.to);
+  }
+}
+function gone(f,quiet){
+  if(f.dead)return;f.dead=true;
+  try{f.pc.close()}catch(e){}
+  if(f.p){f.p.gone=true;if(G&&!G.over){log(`${f.p.name} lämnade bordet.`);step();render()}}
+  friends=friends.filter(x=>x!==f);
+  if(role==='host'&&!G)lobby();
+}
+
+/* ---------- lobby ---------- */
+function lobby(){
+  const L=$('lobby');
+  if(!role){
+    L.innerHTML=`<h2>Välkommen</h2>
+     <button class="big" id="bHost">Skapa bord (värd)</button>
+     <div class="hint">Du får en rumskod på fem tecken. Vännerna skriver in koden på sin telefon, så är ni ihop.</div>
+     <button class="c" id="bJoin">Gå med med rumskod</button>`;
+    $('bHost').onclick=()=>{role='host';hostOpen();lobby()};
+    $('bJoin').onclick=()=>{role='client';lobby()};
+    return;
+  }
+  if(role==='host'){
+    const total=1+friends.filter(f=>f.ok).length+botCount;
+    L.innerHTML=`<h2>Ditt bord</h2>
+     <div style="text-align:center"><div class="hint">Rumskod – ge den till dina vänner</div>
+      <div style="font-size:42px;font-weight:800;letter-spacing:6px;color:#ffd54a">${room}</div></div>
+     <label for="hn">Ditt spelarnamn (värd)</label><input type="text" id="hn" maxlength="14" placeholder="Skriv ditt namn" value="${esc(hostName==='Du'?'':hostName)}">
+     <div>Vid bordet:</div><div class="pl"><span id="hostPlayerName">${esc(hostName||'Du')} (värd)</span></div>
+     ${friends.map(f=>`<div class="pl"><span>${esc(f.name)}</span><span>${f.ok?'✓ ansluten':'ansluter…'}</span></div>`).join('')}
+     <label for="blindMinutes">Tid mellan dubbling av blinds</label>
+     <select id="blindMinutes">${[1,2,3,5,10,15,20,30,45,60].map(n=>`<option value="${n}">${n} minuter</option>`).join('')}</select>
+     <label for="maxBlindBlack">Max big blind (antal svarta marker à 16)</label>
+     <select id="maxBlindBlack"><option value="0">Ingen maxgräns</option>${[1,2,3,4,5,6,8,10,12,16,20,25,32,50,64,100].map(n=>`<option value="${n}">${n} svarta = ${n*16} i big blind</option>`).join('')}</select>
+     <div>Bottar:</div><div class="hint">Blinds 2/4, dubblas var ${blindMinutes}:e minut. Ingen maxgräns för höjning.</div>
+     <select id="bc">${Array.from({length:8},(_,n)=>`<option value="${n}">${n===0?'Inga bottar':n+' bottar ('+['Donner','Masen','Gurra','Tomas','Kamel','Sner','Hallsis'].slice(0,n).join(', ')+')'}</option>`).join('')}</select>
+     <button class="big" id="start" ${total<2?'disabled':''}>Starta spelet (${total} spelare)</button>
+     <div class="hint">Vännerna öppnar samma fil och väljer <i>Gå med med rumskod</i>. Håll den här sidan öppen och skärmen vaken under spelet. Nya spelare kan inte gå med efter start.</div>`;
+    $('hn').oninput=e=>{hostName=e.target.value.trim().slice(0,14)||'Du';const label=L.querySelector('#hostPlayerName');if(label)label.textContent=hostName+' (värd)'};
+    $('hn').onchange=sync;
+    $('blindMinutes').value=String(blindMinutes);$('blindMinutes').onchange=e=>{blindMinutes=Number(e.target.value);lobby()};
+    $('maxBlindBlack').value=String(maxBlindBlack);$('maxBlindBlack').onchange=e=>{maxBlindBlack=Number(e.target.value);lobby()};
+    $('bc').value=String(botCount);$('bc').onchange=e=>{botCount=+e.target.value;lobby()};
+    $('start').onclick=startMatch;
+    sync();return;
+  }
+  let h=`<h2>Gå med med rumskod</h2>`;
+  if(cl.state==='connected'){
+    h+=`<div>Du är ansluten som <b>${esc(cl.name)}</b>.</div><div class="hint">${cl.names?'Vid bordet: '+cl.names.map(esc).join(', '):''}</div><div>Väntar på att värden startar spelet…</div>`;
+  }else if(cl.state==='connecting'){
+    h+=`<div>Ansluter till bord ${esc(cl.room)}…</div>`;
+  }else{
+    h+=`<label for="cn">Ditt spelarnamn</label><input type="text" id="cn" maxlength="14" placeholder="Skriv ditt namn" value="${esc(cl.name)}">
+     <input type="text" id="rc" maxlength="5" placeholder="Rumskod (5 tecken)" value="${esc(cl.room||'')}" style="margin-top:6px;text-transform:uppercase;letter-spacing:4px">
+     <button class="big" id="mk">Gå med</button><div class="hint">${esc(cl.err||'')}</div>`;
+  }
+  h+=`<button class="q" id="back">Tillbaka</button>`;
+  L.innerHTML=h;
+  if($('mk'))$('mk').onclick=joinHost;
+  $('back').onclick=()=>{resetClient();role=null;V=null;lobby()};
+}
+function resetClient(){
+  try{cl.pc&&cl.pc.close()}catch(e){}try{cl.es&&cl.es.close()}catch(e){}
+  clearTimeout(cl.to);cl={pc:null,dc:null,state:'',name:cl.name||'',room:cl.room||'',err:''};
+}
+function clFail(msg){const n=cl.name,r=cl.room;resetClient();cl.name=n;cl.room=r;cl.err=msg;lobby()}
+function joinHost(){
+  const name=$('cn').value.trim().slice(0,14),rc=$('rc').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  cl.name=name;cl.room=rc;
+  if(!name){cl.err='Skriv ett smeknamn först.';return lobby()}
+  if(rc.length!==5){cl.err='Rumskoden har fem tecken.';return lobby()}
+  cl.err='';cl.state='connecting';lobby();
+  const cid=mkId(8);
+  cl.to=setTimeout(()=>clFail('Hittade inget bord med den koden. Kolla koden och att värden är kvar i lobbyn.'),20000);
+  cl.es=subMsg('c-'+cid,async m=>{
+    if(m.t==='busy')return clFail(m.why||'Kunde inte gå med.');
+    if(m.t!=='offer'||cl.pc)return;
+    try{
+      const pc=new RTCPeerConnection(ICE);cl.pc=pc;
+      pc.ondatachannel=e=>{
+        const dc=e.channel;cl.dc=dc;
+        dc.onopen=()=>{clearTimeout(cl.to);cl.state='connected';try{cl.es.close()}catch(_){}dc.send(JSON.stringify({t:'hello',name:cl.name}));lobby()};
+        dc.onmessage=ev=>{
+          const m=JSON.parse(ev.data);
+          if(m.t==='view'){V=m.v;showGame();render()}
+          else if(m.t==='lobby'){cl.names=m.names;$('game').classList.add('hide');$('lobby').classList.remove('hide');lobby()}
+        };
+        dc.onclose=lost;
+      };
+      pc.onconnectionstatechange=()=>{if(['failed','closed'].includes(pc.connectionState)&&cl.state==='connected')lost()};
+      await pc.setRemoteDescription(m.sdp);
+      await pc.setLocalDescription(await pc.createAnswer());
+      await waitIce(pc);
+      pubMsg('r-'+cl.room,{t:'answer',cid,sdp:{type:pc.localDescription.type,sdp:pc.localDescription.sdp}});
+      clearTimeout(cl.to);cl.to=setTimeout(()=>{if(cl.state!=='connected')clFail('Anslutningen tog för lång tid. Prova igen, gärna på samma wifi.')},20000);
+    }catch(e){clFail('Det gick inte att ansluta: '+e.message)}
+  },()=>setTimeout(()=>pubMsg('r-'+cl.room,{t:'join',cid,name:cl.name}).catch(()=>clFail('Ingen internetkontakt.')),400));
+}
+function lost(){
+  if(cl.state!=='connected')return;
+  const n=cl.name,r=cl.room;resetClient();cl.name=n;cl.room=r;cl.err='Anslutningen bröts. Skriv in koden igen om värden är kvar.';
+  $('game').classList.add('hide');$('lobby').classList.remove('hide');lobby();
+}
+if(!window.RTCPeerConnection){$('lobby').innerHTML='<h2>Webbläsaren saknar stöd för vänspel (WebRTC).</h2>'}
+else lobby();
+})();
+</script></body></html>
