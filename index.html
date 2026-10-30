@@ -2,7 +2,7 @@
 <html lang="sv"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>♠ ingolf-All-In-Poker 1.7</title>
+<title>♠ ingolf-All-In-Poker 1.8</title>
 <meta name="apple-mobile-web-app-title" content="♠ ingolf-All-In-Poker 1.4">
 <meta name="application-name" content="♠ ingolf-All-In-Poker 1.4">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -156,7 +156,7 @@ button{min-height:49px;font-size:17px;box-shadow:0 2px 5px #0005}.f{background:#
 #game .result-banner{display:block;position:relative;width:100%;max-width:100%;height:auto;min-height:58px;box-sizing:border-box;margin:9px auto 0;padding:12px 16px;border-radius:12px;background:#153b2c;border:2px solid #b48a35;color:#ffe16b;font-size:clamp(18px,2.1vw,28px);font-weight:900;line-height:1.35;text-align:center;white-space:normal;overflow:visible;overflow-wrap:break-word;word-break:normal;text-overflow:clip;text-shadow:0 1px 2px #000}
 @media(max-width:699px){#game .result-banner{font-size:clamp(17px,4.6vw,24px);min-height:52px;padding:10px 9px}}
 /* Vinnande spelare blinkar exakt tre gånger när given avslutas. */
-@keyframes winnerFlash{0%,100%{filter:brightness(1);box-shadow:0 0 0 2px #ffd84e}50%{filter:brightness(1.7);box-shadow:0 0 0 5px #ffd84e,0 0 28px 12px #ffdc51}}
+@keyframes winnerFlash{0%,100%{filter:brightness(1);box-shadow:0 0 0 2px #ffd84e}50%{filter:brightness(1.8);box-shadow:0 0 0 5px #ffd84e,0 0 28px 12px #ffdc51}}
 .ring-seats .seat.winner{border-color:#ffd84e!important;animation:winnerFlash .8s ease-in-out 3;z-index:6!important}
 .flying-chip{position:fixed;z-index:9999;width:28px;height:28px;border-radius:50%;border:3px dashed #ffe995;background:radial-gradient(circle,#f5c54c,#b47a12);box-shadow:0 2px 9px #0009;color:#4b3000;display:grid;place-items:center;font-size:15px;font-weight:900;pointer-events:none}
 @media(prefers-reduced-motion:reduce){.flying-chip{display:none}}
@@ -303,7 +303,7 @@ button{min-height:49px;font-size:17px;box-shadow:0 2px 5px #0005}.f{background:#
  .poker-ring{width:100%;max-width:none;height:clamp(285px,78vh,425px);min-height:0;margin:0 auto;border-width:6px}
  .ring-seats .seat{width:clamp(78px,11vw,112px);padding:2px 2px;border-radius:9px}
  .ring-seats .seat.self{width:clamp(100px,15vw,136px)}
- .ring-seats .seat .nm{font-size:clamp(11px,1.7vw,14px);line-height:1.05}
+ .ring-seats .seat .nm{font-size:clamp(11px,1.8vw,14px);line-height:1.05}
  .ring-seats .seat .st{font-size:11px}
  .ring-seats .seat .cards{margin:2px 0;gap:2px}
  .ring-seats .seat .card.back{width:clamp(24px,3.3vw,34px);height:clamp(34px,4.6vw,47px)}
@@ -415,7 +415,7 @@ h1 .version{font-size:.72em;font-weight:500;opacity:.8;margin-left:5px;white-spa
 <button id="soundToggle" type="button" aria-label="Aktivera och testa ljud">🔇 Aktivera ljud</button>
 <div id="blindAnnouncement" role="status" aria-live="assertive"></div>
 <div id="app">
- <h1><span>♠ ingolf-All-In-Poker <span class="version">1.7</span></span><small id="info"></small></h1>
+ <h1><span>♠ ingolf-All-In-Poker <span class="version">1.8</span></span><small id="info"></small></h1>
  <div id="lobby" class="panel"></div>
  <div id="game" class="hide">
   <div id="blindClock" class="blind-clock" aria-live="off"><span>⏱ Nästa blindshöjning</span><strong id="blindCountdown">10:00</strong><span id="blindValues">Blinds 2 / 4</span></div>
@@ -681,7 +681,14 @@ function score5(c){
     const pairs=groups.filter(g=>g.n===2).map(g=>g.r).sort((a,b)=>b-a);
     rank=[...pairs,groups.find(g=>g.n===1).r];
   }
-  else if(groups[0].n===2){cat=1;rank=[groups[0].r,...groups.slice(1).map(g=>g.r).sort((a,b)=>b-a)]}
+  else if(groups[0].n===2){
+    // Vid lika par jämförs högsta sidokortet (kicker), sedan näst högsta
+    // och slutligen tredje högsta. Ex: A,A,K,9,3 slår A,A,Q,J,10.
+    cat=1;
+    const pair=groups[0].r;
+    const kickers=rs.filter(r=>r!==pair).sort((a,b)=>b-a);
+    rank=[pair,...kickers];
+  }
   else {cat=0;rank=rs}
   let score=cat;
   for(let i=0;i<5;i++)score=score*15+(rank[i]||0);
@@ -836,7 +843,8 @@ function finish(){
   G.winners=won.map((amount,i)=>amount>0?i:-1).filter(i=>i>=0);
   G.winPot=won.reduce((a,b)=>a+b,0);
   P.forEach((p,i)=>{if(won[i]>0){
-    const how=showdown?` med ${HN[catOf(sc(p))].toLowerCase()}`:'';
+    const handCategory=showdown?catOf(sc(p)):-1;
+    const how=showdown?` med ${HN[handCategory].toLowerCase()}${handCategory===1?' (högsta sidokort avgör vid lika par)':''}`:'';
     lines.push(`${p.name} vinner${how} (${won[i]} marker)`);log(`🏆 ${p.name} vinner${how} (${won[i]} marker).`)}});
   G.msg=lines.join(' · ');
   G.over=true;G.phase='ended';G.toAct=null;
